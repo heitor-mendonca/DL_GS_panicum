@@ -6,4 +6,4 @@
 
 ## About this fork
 
-I'll try to expand on the GS methods in the article by implementing a Convolutional Neural Network to try and predict the phenotypes.
+I'll try to expand on the GS methods in the article by implementing a Convolutional Neural Network to try and predict the phenotypes using genomic information.
