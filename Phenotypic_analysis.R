@@ -19,7 +19,7 @@ str(traits)
 head(traits, 8)
 
 traits <- transform(traits, harvest=factor(harvest), block=factor(block), parent=factor(parent), 
-                    genotype=factor(genotype), plot=factor(plot))
+                    genotype=factor(genotype), plot=factor(plot), type = factor(type))
 str(traits)
 
 trait <- asreml(fixed = OM ~ harvest + at(type,1):genotype + at(type,1):genotype:harvest,
