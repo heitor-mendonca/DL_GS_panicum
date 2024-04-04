@@ -106,13 +106,23 @@ vc.g
 # Mean variance of a difference of two genotypic BLUPs
 vdBLUP.mat <- predict.asreml(model_OM_h2, classify="genotype", sed=TRUE)$sed^2 # obtain squared s.e.d. matrix 
 vdBLUP.avg <- mean(vdBLUP.mat[upper.tri(vdBLUP.mat, diag=FALSE)]) # take mean of upper triangle
-vdBLUP.avg #0.05455038
+vdBLUP.avg 
 H2Cullis <- 1 - (vdBLUP.avg / 2 / vc.g)
 H2Cullis #0.8091336
 #--------------------------------------------------------------------------------------------
+#Adjusted means
+model_OM_h2 <- asreml(fixed = OM ~ harvest  , 
+                      random = ~ parent:block:harvest  + harvest:block +  parent:harvest+ 
+                        genotype:exp(harvest),
+                      residual = ~corh(harvest):plot, 
+                      workspace = 32e7,
+                      data = data)
 
 
 
-pred_trait_OM <- predict.asreml(model_OM_1, classify = 'at(type, progeny):genotype', sed=T, pworkspace = 32e7)
-pred_trait_OM <- predict.asreml(model_OM_1, classify = 'genotype', pworkspace = 32e7)
-trait_pred_OM <- pred_trait_OM$pvals$predicted.value      
+pred_trait <- predict.asreml(model_OM_h2, classify = 'genotype', sed=T, pworkspace = 32e7)
+trait_pred <- pred_trait$pvals %>% select(!status)
+
+readr::write_delim(trait_pred, 'adjusted_means_heitor.txt')
+#----------------------------------------------------------------------------------------------
+
