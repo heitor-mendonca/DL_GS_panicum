@@ -108,7 +108,7 @@ vdBLUP.mat <- predict.asreml(model_OM_h2, classify="genotype", sed=TRUE)$sed^2 #
 vdBLUP.avg <- mean(vdBLUP.mat[upper.tri(vdBLUP.mat, diag=FALSE)]) # take mean of upper triangle
 vdBLUP.avg 
 H2Cullis <- 1 - (vdBLUP.avg / 2 / vc.g)
-H2Cullis #0.8091336
+H2Cullis #0.6930863
 #--------------------------------------------------------------------------------------------
 #Adjusted means
 model_OM_h2 <- asreml(fixed = OM ~ harvest  , 
