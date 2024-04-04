@@ -7,7 +7,7 @@
 ###############################################################################
 library(tidyverse)
 library(asreml)
-library(corrplot)
+library(asremlPlus)
 
 
 # Checking trait data
@@ -65,25 +65,54 @@ summary(data)
 data %>% drop_na() %>% summarise(mean = mean(OM), .by = harvest) %>% ggplot(aes(x = harvest, y = mean))+
   geom_point()
 
+data %>% drop_na() %>% group_by(genotype, harvest) %>% summarise(mean = mean(OM)) %>% ggplot(aes(x = harvest, y = mean, group = genotype)) + geom_line()
+
+
+data %>% fct_lump_prop(genotypes,prop = 4) %>% drop_na()  %>% count(genotype) %>% arrange(n)
 #-----------------------------------------------------
 #phenotypic model
 
-model_OM_1 <- asreml(fixed = OM ~ harvest + at(type, 'clone'):genotype +at(type, 'clone'):genotype:harvest , 
-                     random = ~ parent + parent:harvest + harvest:block + at(type, 'progeny'):genotype,
-                     residual = ~dsum(~units | harvest), #equivalent to idh(harvest):plot
+model_OM <- asreml(fixed = OM ~ harvest + at(type,'clone'):genotype +at(type, 'clone'):genotype:harvest  , 
+                     random = ~ parent:block:harvest  + harvest:block +  parent:harvest+ 
+                     at(type, 'progeny'):(genotype):exp(harvest),
+                     residual = ~corh(harvest):plot, 
                      workspace = 32e7,
                      data = data)
 
-model_OM_1 <- asreml(fixed = OM ~ harvest + at(type, 'clone'):genotype +at(type, 'clone'):genotype:harvest , 
-                     random = ~  parent:harvest + harvest:block + at(type, 'progeny'):genotype:harvest +parent:block:harvest,
-                     #residual = ~dsum(~units | harvest), #equivalent to idh(harvest):plot
-                     residual = ~id(harvest):plot, 
-                     workspace = 32e7,
-                     data = data)
 
-wald(model_OM_1)
-plot(model_OM_1)
-infoCriteria.asreml(model_OM_1) 
-summary(model_OM_1, all=T)$varcomp
-pred_trait_OM <- predict.asreml(model_OM_1, classify = 'at(type, progeny):genotype', sed=T)
-trait_pred_OM <- pred_trait$pvals$predicted.value      
+model_OM <- update(model_OM)
+
+wald(model_OM)
+plot(model_OM)
+infoCriteria.asreml(model_OM) 
+summary(model_OM, all=T)$varcomp
+
+
+#---------------------------------------------------------------------------------------------------------------------------------
+model_OM_h2 <- asreml(fixed = OM ~ harvest  , 
+                   random = ~ parent:block:harvest  + harvest:block +  parent:harvest+ 
+                     genotype:exp(harvest),
+                   residual = ~corh(harvest):plot, 
+                   workspace = 32e7,
+                   data = data)
+
+
+
+summary(model_OM_h2, all=T)$varcomp
+
+vc.g <- 0.50472274
+vc.g
+
+# Mean variance of a difference of two genotypic BLUPs
+vdBLUP.mat <- predict.asreml(model_OM_h2, classify="genotype", sed=TRUE)$sed^2 # obtain squared s.e.d. matrix 
+vdBLUP.avg <- mean(vdBLUP.mat[upper.tri(vdBLUP.mat, diag=FALSE)]) # take mean of upper triangle
+vdBLUP.avg #0.05455038
+H2Cullis <- 1 - (vdBLUP.avg / 2 / vc.g)
+H2Cullis #0.8091336
+#--------------------------------------------------------------------------------------------
+
+
+
+pred_trait_OM <- predict.asreml(model_OM_1, classify = 'at(type, progeny):genotype', sed=T, pworkspace = 32e7)
+pred_trait_OM <- predict.asreml(model_OM_1, classify = 'genotype', pworkspace = 32e7)
+trait_pred_OM <- pred_trait_OM$pvals$predicted.value      
