@@ -10,8 +10,8 @@ library(tidyverse)
 library(ASRgenomics)
 library(asreml)
 
-#load molecular_data.RData as X4
-
+#load molecular_data
+load('./Data/molecular_data.RData')
 geno <- X4
 
 
@@ -26,7 +26,7 @@ check_G$plot.diag
 #---------------------------------------------------------------------------
 #Obtaining A
 
-pedigree <- read.table('genealogy.txt', header = T, sep = '\t') #don't use the readr package here
+pedigree <- read.table('./Data/genealogy.txt', header = T, sep = '\t') #don't use the readr package here
 A <- AGHmatrix::Amatrix(pedigree, ploidy = 4)
 #----------------------------------------------------------------------------
 #comparing G and A
@@ -65,7 +65,7 @@ kinship.diagnostics(G_blend) #more extreme diagonal values than aligned, but mea
 
 #import means, intersect with G_align
 
-means <- readr::read_delim('adjusted_means_heitor.txt') %>% mutate(genotype = as.character(genotype)) %>% filter(genotype %in% colnames(G_aligned)) %>% 
+means <- readr::read_delim('./Data/adjusted_means_heitor.txt') %>% mutate(genotype = as.character(genotype)) %>% filter(genotype %in% colnames(G_aligned)) %>% 
   mutate(genotype = as.factor(genotype))
 str(means)
 
@@ -87,3 +87,4 @@ mod_h2 <- asreml(fixed = predicted.value ~ 1,
 summary(mod_h2)$varcomp
 
 vpredict(mod_h2, H2 ~ V1/(V1+V2)) #narrow sense h2 0.5812985 
+
