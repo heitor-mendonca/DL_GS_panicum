@@ -16,12 +16,12 @@ library(AGHmatrix)
 
 
 # Phenotipic data
-means <- read.table(file="./blup_means.txt", sep = ",", dec = ".", header = TRUE)
+means <- read.table(file="blup_means.txt", sep = "\t", dec = ".", header = TRUE)
 head(means)
 
 
 # Pedigree data
-ped.data <- read.table("./genealogia.txt", header=T, sep = "\t")
+ped.data <- read.table("genealogy.txt", header=T, sep = "\t")
 head(ped.data)
 Amat <- Amatrix(data=ped.data, ploidy=4)
 Amat[c(1:3,33:36), c(1:3,33:36)]
@@ -35,7 +35,7 @@ dim(Amat_ind)                               # 530 x 530
 Z <- diag(nrow(means))                      # Identity
 dim(Z)                          
 
-load("./molecular_data.RData")
+load("molecular_data.RData")
 dim(X4)                                     # 530 offsprings and 41424 markers
 Gmat <- Gmatrix(X4, method="VanRaden", ploidy=4, missingValue =NA)  
 Gmat[1:5, 1:5]                   
@@ -51,13 +51,12 @@ Ginv <- solve(G)
 data <- data.frame("ind" <- as.factor(means$Offspring), "OM" <- means$OM)
 colnames(data) <- c("ind", "OM")
 
-GBLUP_OM <- asreml(fixed = OM ~ 1, random = ~ giv(ind),
-                   ginverse = list(ind = Ginv),
-                   na.method.Y = "include", data = data)
+GBLUP_OM <- asreml(fixed = OM ~ 1, random = ~ vm(ind,G),
+                   na.action = na.method(y = "include"), data = data)
 GBLUP_OM <- update.asreml(GBLUP_OM)
-info.crit.asreml(GBLUP_OM) 
+infoCriteria.asreml(GBLUP_OM) 
 summary(GBLUP_OM, all=T)$varcomp
-summary(GBLUP_OM, all=T)$varcomp[1,2]/(summary(GBLUP_OM, all=T)$varcomp[1,2] + summary(GBLUP_OM, all=T)$varcomp[2,2])
+summary(GBLUP_OM, all=T)$varcomp[1,1]/(summary(GBLUP_OM, all=T)$varcomp[1,1] + summary(GBLUP_OM, all=T)$varcomp[2,1])
 # 0.5622
 
 ## IVD ####
