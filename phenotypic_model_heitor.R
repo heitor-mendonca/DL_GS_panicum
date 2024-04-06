@@ -75,7 +75,7 @@ data %>% fct_lump_prop(genotypes,prop = 4) %>% drop_na()  %>% count(genotype) %>
 model_OM <- asreml(fixed = OM ~ harvest + at(type,'clone'):genotype +at(type, 'clone'):genotype:harvest  , 
                      random = ~ parent:block:harvest  + harvest:block +  parent:harvest+ 
                      at(type, 'progeny'):(genotype):exp(harvest),
-                     residual = ~corh(harvest):plot, 
+                     residual = ~corh(harvest):plot, #corh is simple correlation, het variance 
                      workspace = 32e7,
                      data = data)
 
