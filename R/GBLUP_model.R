@@ -13,18 +13,18 @@ library(coda)
 library(cvTools)                          
 library(asreml)
 library(asremlPlus)
-library(nadiv)
+#library(nadiv)
 library(AGHmatrix)
 
 
 # Phenotipic data
-means <- read.table(file="./blup_means.txt", sep = ",", dec = ".", header = TRUE)
+means <- read.table(file="./Data/blup_means.txt", sep = "\t", dec = ".", header = TRUE)
 head(means)
-y.trait <- means$MOF
+y.trait <- means$OM
 
 
 # Pedigree data
-ped.data <- read.table("genealogy.txt", header=T, sep = "\t")
+ped.data <- read.table("./Data/genealogy.txt", header=T, sep = "\t")
 head(ped.data)
 Amat <- Amatrix(data=ped.data, ploidy=4)
 Amat[c(1:3,33:36), c(1:3,33:36)]
@@ -38,7 +38,7 @@ dim(Amat_ind)                               # 530 x 530
 Z <- diag(nrow(means))                      
 dim(Z)                          
 
-load("./molecular_data.RData")
+load("./Data/molecular_data.RData")
 dim(X4)                                     # 530 offsprings and 41424 markers
 Gmat <- Gmatrix(X4, method="VanRaden", ploidy=4, missingValue=NA)  
 Gmat[1:5, 1:5]                  
@@ -53,7 +53,7 @@ Ginv <- solve(G)
 ##Cross-validation sets:####
 n_id = length(means$Offspring)               
 n_model = 1
-s = 1000
+s = 200
 
 y_pred_list = NULL
 y_pred_list = c(y_pred_list, 1)
@@ -100,55 +100,50 @@ for(k in 1:s){
   y_obs[sets$set1]=y.trait[sets$set1]
   data <- data.frame("ind" <- as.factor(means$Offspring), "trait" <- y_obs)
   colnames(data) <- c("ind", "trait")
-  GBLUP_set1 <- asreml(fixed = trait ~ 1, random = ~ giv(ind),
-                       ginverse = list(ind = Ginv),
-                       na.method.Y = "include", data = data)
+  GBLUP_set1 <- asreml(fixed = trait ~ 1, random = ~ vm(ind,G),
+                       na.action = na.method(y = "include"), data = data)
   GBLUP_set1 <- update.asreml(GBLUP_set1)
-  pred_set1 <- predict(GBLUP_set1, classify="ind", sed=T)$predictions$pvals
+  pred_set1 <- predict(GBLUP_set1, classify="ind", sed=T)$pvals
   y_pred_G[out_sets$out_set1, k] <- pred_set1[out_sets$out_set1, 2]
   
   y_obs=matrix(NA,n_id,1)
   y_obs[sets$set2]=y.trait[sets$set2]
   data <- data.frame("ind" <- as.factor(means$Offspring), "trait" <- y_obs)
   colnames(data) <- c("ind", "trait")
-  GBLUP_set2 <- asreml(fixed = trait ~ 1, random = ~ giv(ind),
-                         ginverse = list(ind = Ginv),
-                         na.method.Y = "include", data = data)
+  GBLUP_set2 <- asreml(fixed = trait ~ 1, random = ~ vm(ind,G),
+                       na.action = na.method(y = "include"), data = data)
   GBLUP_set2 <- update.asreml(GBLUP_set2)
-  pred_set2 <- predict(GBLUP_set2, classify="ind", sed=T)$predictions$pvals
+  pred_set2 <- predict(GBLUP_set2, classify="ind", sed=T)$pvals
   y_pred_G[out_sets$out_set2, k] <- pred_set2[out_sets$out_set2, 2]
   
   y_obs=matrix(NA,n_id,1)
   y_obs[sets$set3]=y.trait[sets$set3]
   data <- data.frame("ind" <- as.factor(means$Offspring), "trait" <- y_obs)
   colnames(data) <- c("ind", "trait")
-  GBLUP_set3 <- asreml(fixed = trait ~ 1, random = ~ giv(ind),
-                       ginverse = list(ind = Ginv),
-                       na.method.Y = "include", data = data)
+  GBLUP_set3 <- asreml(fixed = trait ~ 1, random = ~ vm(ind,G),
+                       na.action = na.method(y = "include"), data = data)
   GBLUP_set3 <- update.asreml(GBLUP_set3)
-  pred_set3 <- predict(GBLUP_set3, classify="ind", sed=T)$predictions$pvals
+  pred_set3 <- predict(GBLUP_set3, classify="ind", sed=T)$pvals
   y_pred_G[out_sets$out_set3, k] <- pred_set3[out_sets$out_set3, 2]
   
   y_obs=matrix(NA,n_id,1)
   y_obs[sets$set4]=y.trait[sets$set4]
   data <- data.frame("ind" <- as.factor(means$Offspring), "trait" <- y_obs)
   colnames(data) <- c("ind", "trait")
-  GBLUP_set4 <- asreml(fixed = trait ~ 1, random = ~ giv(ind),
-                         ginverse = list(ind = Ginv),
-                         na.method.Y = "include", data = data)
+  GBLUP_set4 <- asreml(fixed = trait ~ 1, random = ~ vm(ind,G),
+                       na.action = na.method(y = "include"), data = data)
   GBLUP_set4 <- update.asreml(GBLUP_set4)
-  pred_set4 <- predict(GBLUP_set4, classify="ind", sed=T)$predictions$pvals
+  pred_set4 <- predict(GBLUP_set4, classify="ind", sed=T)$pvals
   y_pred_G[out_sets$out_set4, k] <- pred_set4[out_sets$out_set4, 2]
   
   y_obs=matrix(NA,n_id,1)
   y_obs[sets$set5]=y.trait[sets$set5]
   data <- data.frame("ind" <- as.factor(means$Offspring), "trait" <- y_obs)
   colnames(data) <- c("ind", "trait")
-  GBLUP_set5 <- asreml(fixed = trait ~ 1, random = ~ giv(ind),
-                         ginverse = list(ind = Ginv),
-                         na.method.Y = "include", data = data)
+  GBLUP_set5 <- asreml(fixed = trait ~ 1, random = ~ vm(ind,G),
+                       na.action = na.method(y = "include"), data = data)
   GBLUP_set5 <- update.asreml(GBLUP_set5)
-  pred_set5 <- predict(GBLUP_set5, classify="ind", sed=T)$predictions$pvals
+  pred_set5 <- predict(GBLUP_set5, classify="ind", sed=T)$pvals
   y_pred_G[out_sets$out_set5, k] <- pred_set5[out_sets$out_set5, 2]
   
   y_pred_list = c(y_pred_list,c(y_pred_G[,k]))
