@@ -59,7 +59,24 @@ dim(G_blend)
 G_blend_inv <- G.inverse(G_blend, sparseform = T)$Ginv
 kinship.diagnostics(G_blend) #more extreme diagonal values than aligned, but mean around 1
 
+#------------------------------------------------------------------------------
+#Obtaining H matrix
+Ginv <- G.inverse(G = G_blend, sparseform = FALSE)$Ginv
+Ginv[1:5, 1:5] 
+Hinv.sparse <- H.inverse(A = A, G = Ginv, lambda = 0.90, sparseform = TRUE)
+head(Hinv.sparse)
 
+H <- H.matrix(A = A, Ginv = Ginv, lambda = 0.90, sparseform = FALSE)
+dim(H)
+
+
+
+A[25:30, 25:30]
+H[25:30, 25:30]
+A[44:49, 44:49]
+H[44:49, 44:49]
+A[505:510, 505:510]
+H[505:510, 505:510]
 #------------------------------------------------------------------------------
 #obtaining genomic heritability 
 
@@ -90,4 +107,37 @@ mod_h2 <- asreml(fixed = predicted.value ~ 1,
 summary(mod_h2)$varcomp
 
 vpredict(mod_h2, H2 ~ V1/(V1+V2)) #narrow sense h2 0.5812985 
+
+#fit model with H matrix
+
+#needs more complete phenotype
+means_H <- readr::read_delim('./Data/adjusted_means_heitor.txt') %>% 
+  mutate(genotype = as.character(genotype))%>%
+  filter(genotype %in% colnames(H)) %>% 
+  mutate(genotype = as.factor(genotype))
+
+
+mod_h2 <- asreml(fixed = predicted.value ~ 1,
+                 random = ~ vm(genotype, Hinv.sparse),
+                 data = means_H)
+
+
+summary(mod_h2)$varcomp
+
+vpredict(mod_h2, H2 ~ V1/(V1+V2)) #narrow sense h2 0.6390203 
+#------------------------------------------------------------------------------
+#saving matrices and phentoypes for GS
+
+readr::write_rds(G_aligned, './Data/G_aligned_heitor')
+readr::write_rds(Gclean, './Data/G_clean_heitor')
+readr::write_rds(G_blend, './Data/G_blend_heitor')
+readr::write_rds(Aclean, './Data/A_clean_heitor')
+readr::write_rds(Aclean, './Data/A_clean_heitor')
+readr::write_rds(H, './Data/H_heitor')
+readr::write_rds(Hinv.sparse, './Data/Hinv_sparse_heitor')
+readr::write_rds(means, './Data/adj_mean_OM_heitor')
+
+
+
+
 
