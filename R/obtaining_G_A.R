@@ -65,8 +65,11 @@ kinship.diagnostics(G_blend) #more extreme diagonal values than aligned, but mea
 
 #import means, intersect with G_align
 
-means <- readr::read_delim('./Data/adjusted_means_heitor.txt') %>% mutate(genotype = as.character(genotype)) %>% filter(genotype %in% colnames(G_aligned)) %>% 
+means <- readr::read_delim('./Data/adjusted_means_heitor.txt') %>% 
+  mutate(genotype = as.character(genotype)) %>%
+  filter(genotype %in% colnames(G_aligned)) %>% 
   mutate(genotype = as.factor(genotype))
+
 str(means)
 
 #fit model with aligned matrix
