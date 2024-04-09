@@ -24,7 +24,7 @@ fam_data <- readr::read_delim('./Data/blup_means.txt') %>%
 phenotype <- readr::read_rds('./Data/adj_mean_OM_heitor') %>% 
   inner_join(fam_data, by = c('genotype' ='genotype'))%>%
   mutate(family = Mother, resp = predicted.value) %>% 
-  select(!c(Mother, predicted.value)) %>%  relocate(family)
+  select(!c(Mother, predicted.value)) %>%  relocate(family) %>% droplevels()
 
 
 str(phenotype)
