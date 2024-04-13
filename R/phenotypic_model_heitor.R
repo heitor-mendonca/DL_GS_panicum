@@ -35,18 +35,19 @@ plot(density(nutritional_traits$CP%>%na.omit()))
 plot(density(nutritional_traits$IVD%>%na.omit()))
 
 #OM seems to be the best, we're going to work with it for the moment
-#---------------------------------------------------
+#-------------------------------------------------------------------------------
 
-data <- readr::read_delim('Nutritional_traits.txt') %>% select(!c(CP,IVD)) %>%mutate(genotype = as.factor(genotype),
-                                                                                     type     = as.factor(type),
-                                                                                     parent   = as.factor(parent),
-                                                                                     block    = as.factor(block),
-                                                                                     harvest  = as.factor(harvest),
-                                                                                     plot     = as.factor(plot))
+data <- readr::read_delim('Nutritional_traits.txt') %>% select(!c(CP,IVD)) %>%
+  mutate(genotype = as.factor(genotype),
+         type     = as.factor(type),
+         parent   = as.factor(parent),
+         block    = as.factor(block),
+         harvest  = as.factor(harvest),
+         plot     = as.factor(plot))
 str(data)
 head(data)
 
-#----------------------------------------------------
+#-------------------------------------------------------------------------------
 #exploratory analyses
 
 
@@ -55,25 +56,31 @@ ggplot(data, aes(y = OM)) +
   theme_minimal()
 
 
-ggplot(data, aes(x = OM) + 
+ggplot(data, aes(x = OM)) + 
   geom_density()+
   theme_minimal()
 
 summary(data)
 
 
-data %>% drop_na() %>% summarise(mean = mean(OM), .by = harvest) %>% ggplot(aes(x = harvest, y = mean))+
+data %>% drop_na() %>% summarise(mean = mean(OM), .by = harvest) %>%
+  ggplot(aes(x = harvest, y = mean))+
   geom_point()
 
-data %>% drop_na() %>% group_by(genotype, harvest) %>% summarise(mean = mean(OM)) %>% ggplot(aes(x = harvest, y = mean, group = genotype)) + geom_line()
+data %>% drop_na() %>% group_by(genotype, harvest) %>% summarise(mean = mean(OM)) %>%
+  ggplot(aes(x = harvest, y = mean, group = genotype)) + 
+  geom_line()
 
 
-data %>% fct_lump_prop(genotypes,prop = 4) %>% drop_na()  %>% count(genotype) %>% arrange(n)
-#-----------------------------------------------------
+data %>% fct_lump_prop(genotypes,prop = 4) %>% drop_na()  %>%
+  count(genotype) %>% 
+  arrange(n)
+#-------------------------------------------------------------------------------
 #phenotypic model
 
-model_OM <- asreml(fixed = OM ~ harvest + at(type,'clone'):genotype +at(type, 'clone'):genotype:harvest  , 
-                     random = ~ parent:block:harvest  + harvest:block +  parent:harvest+ 
+model_OM <- asreml(fixed = OM ~ harvest + at(type,'clone'):genotype +
+                     at(type, 'clone'):genotype:harvest, 
+                     random = ~ parent:block:harvest + harvest:block + parent:harvest+ 
                      at(type, 'progeny'):(genotype):exp(harvest),
                      residual = ~corh(harvest):plot, #corh is simple correlation, het variance 
                      workspace = 32e7,
@@ -88,7 +95,7 @@ infoCriteria.asreml(model_OM)
 summary(model_OM, all=T)$varcomp
 
 
-#---------------------------------------------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 model_OM_h2 <- asreml(fixed = OM ~ harvest  , 
                    random = ~ parent:block:harvest  + harvest:block +  parent:harvest+ 
                      genotype:exp(harvest),
@@ -104,16 +111,16 @@ vc.g <- 0.50472274
 vc.g
 
 # Mean variance of a difference of two genotypic BLUPs
-vdBLUP.mat <- predict.asreml(model_OM_h2, classify="genotype", sed=TRUE)$sed^2 # obtain squared s.e.d. matrix 
-vdBLUP.avg <- mean(vdBLUP.mat[upper.tri(vdBLUP.mat, diag=FALSE)]) # take mean of upper triangle
+vdBLUP.mat <- predict.asreml(model_OM_h2, classify="genotype", sed=TRUE)$sed^2 
+vdBLUP.avg <- mean(vdBLUP.mat[upper.tri(vdBLUP.mat, diag=FALSE)]) 
 vdBLUP.avg 
 H2Cullis <- 1 - (vdBLUP.avg / 2 / vc.g)
 H2Cullis #0.6930863
-#--------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 #Adjusted means
 model_OM_h2 <- asreml(fixed = OM ~ harvest  , 
-                      random = ~ parent:block:harvest  + harvest:block +  parent:harvest+ 
-                        genotype:exp(harvest),
+                      random = ~ parent:block:harvest  + harvest:block +
+                        parent:harvest+ genotype:exp(harvest),
                       residual = ~corh(harvest):plot, 
                       workspace = 32e7,
                       data = data)
@@ -124,5 +131,5 @@ pred_trait <- predict.asreml(model_OM_h2, classify = 'genotype', sed=T, pworkspa
 trait_pred <- pred_trait$pvals %>% select(!status)
 
 readr::write_delim(trait_pred, 'adjusted_means_heitor.txt')
-#----------------------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
 
