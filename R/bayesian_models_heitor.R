@@ -28,14 +28,14 @@ phenotype <- readr::read_rds('./Data/adj_mean_OM_heitor') %>%
 #-------------------------------------------------------------------------------
 # set some configs
 
-nIter <- 4000; burnIn <- 700    # For Testing, actual training takes more
+nIter <- 6000; burnIn <- 700    # For Testing, actual training takes more
 
 #-------------------------------------------------------------------------------
 #Bayesian Ridge Regression
 
 ETA <- list(list(X=geno, model="BRR"))
 y <- phenotype$resp
-gsBRR <- BGLR(y=y, ETA=ETA, nIter=nIter, burnIn=burnIn)
+gsBRR <- BGLR(y=y, ETA=ETA, nIter=nIter, burnIn=burnIn, saveAt = './Data/bayesian_files/BRR/')
 
 #######################################################
 # Calculating goodness-of-fit statistics (from salvador's script)

@@ -19,9 +19,9 @@ library(AGHmatrix)
 
 
 # Phenotipic data
-means <- read.table(file="./blup_means.txt", sep = ",", dec = ".", header = TRUE)
+means<- read.table(file="./Data/blup_means.txt", sep = "\t", dec = ".", header = TRUE)
 head(means)
-y.trait <- means$MOF
+y.trait <- means$OM
 
 
 # Genotipic data
