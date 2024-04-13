@@ -1,3 +1,10 @@
+###############################################################################
+#  Article: Genomic selection with allele dosage in Panicum maximum (Jacq.)   #
+#           Lara et al., 2018                                                 #
+#           Submitted to G3 (Genes|Genomes|Genetics)                          #
+#                                                                             #
+#  Personal Project : use Deep Learning to perform GS in this article         #
+###############################################################################
 library(tidyverse)
 library(keras)
 #------------------------------------------------------------------------
