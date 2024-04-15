@@ -31,7 +31,7 @@ str(phenotype)
 str(fam_data)
 
 #-------------------------------------------------------------------------------
-#
+#check data
 check <- match.kinship2pheno(K=G_mat, pheno.data=phenotype,
                              indiv='genotype', clean=FALSE, mism=TRUE)
 #-------------------------------------------------------------------------------
