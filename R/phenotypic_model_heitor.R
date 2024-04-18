@@ -12,7 +12,7 @@ library(asremlPlus)
 
 # Checking trait data
 
-nutritional_traits <- readr::read_delim('Nutritional_traits.txt')
+nutritional_traits <- readr::read_delim('~/Documents/DL_GS_panicum/Data/Nutritional_traits.txt')
 
 
 nutritional_traits %>% select(OM) %>% drop_na() %>% boxplot()
@@ -20,7 +20,7 @@ nutritional_traits %>% select(CP) %>% drop_na() %>% boxplot()
 nutritional_traits %>% select(IVD) %>% drop_na() %>% boxplot()
 
 
-productive_traits <- readr::read_delim('Productive_traits.txt')
+productive_traits <- readr::read_delim('~/Documents/DL_GS_panicum/Data/Productive_traits.txt')
 
 
 productive_traits %>% select(LDM) %>% drop_na() %>% boxplot()
@@ -37,7 +37,7 @@ plot(density(nutritional_traits$IVD%>%na.omit()))
 #OM seems to be the best, we're going to work with it for the moment
 #-------------------------------------------------------------------------------
 
-data <- readr::read_delim('Nutritional_traits.txt') %>% select(!c(CP,IVD)) %>%
+data <- readr::read_delim('~/Documents/DL_GS_panicum/Data/Nutritional_traits.txt') %>% select(!c(CP,IVD)) %>%
   mutate(genotype = as.factor(genotype),
          type     = as.factor(type),
          parent   = as.factor(parent),
@@ -84,6 +84,7 @@ model_OM <- asreml(fixed = OM ~ harvest + at(type,'clone'):genotype +
                      at(type, 'progeny'):(genotype):exp(harvest),
                      residual = ~corh(harvest):plot, #corh is simple correlation, het variance 
                      workspace = 32e7,
+                     na.action = na.method(y = 'include'),
                      data = data)
 
 
@@ -101,6 +102,7 @@ model_OM_h2 <- asreml(fixed = OM ~ harvest  ,
                      genotype:exp(harvest),
                    residual = ~corh(harvest):plot, 
                    workspace = 32e7,
+                   na.action = na.method(y = 'include'),
                    data = data)
 
 
@@ -123,6 +125,7 @@ model_OM_h2 <- asreml(fixed = OM ~ harvest  ,
                         parent:harvest+ genotype:exp(harvest),
                       residual = ~corh(harvest):plot, 
                       workspace = 32e7,
+                      na.action = na.method(y = 'include'),
                       data = data)
 
 
